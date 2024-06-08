@@ -16,7 +16,7 @@ from copy import deepcopy
 from typing import Dict, Sequence, Union
 from xmlrpc.client import Boolean
 
-from .core import WyckoffCfgGenerator as _WYG
+from ._core import WyckoffCfgGenerator as _WYG
 
 
 class WyckoffCfgGenerator(object):

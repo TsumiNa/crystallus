@@ -5,3 +5,5 @@ dependencies:
   - pandas
   - peewee>=3.13.0
   - pymatgen
+  - pandas
+  - ase

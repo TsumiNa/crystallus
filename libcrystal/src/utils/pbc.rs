@@ -211,6 +211,8 @@ pub(crate) fn lll_reduce(
 
 #[cfg(test)]
 mod tests {
+    extern crate approx;
+
     use super::*;
     use approx::assert_abs_diff_eq;
     use ndarray::arr2;

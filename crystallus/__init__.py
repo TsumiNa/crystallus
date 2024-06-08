@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# import mkl as _  # for side effect
+import mkl as _  # for side effect
 
 from .wyckoff_cfg_generator import WyckoffCfgGenerator
 from .crystal_generator import CrystalGenerator
@@ -25,4 +25,4 @@ __all__ = [
     "SpaceGroupDB",
 ]
 
-__version__ = "0.3.1.rc1"
+__version__ = "0.3.2.rc1"

@@ -28,8 +28,8 @@ pub struct ParticleGenerator {
 #[pymethods]
 impl ParticleGenerator {
     #[new]
-    #[args(shifts = "*")]
-    fn new(s: &str, shifts: &PyTuple) -> PyResult<Self> {
+    #[pyo3( signature = (s, *shifts))]
+    fn new(s: &str, shifts: &Bound<'_, PyTuple>) -> PyResult<Self> {
         match shifts.len() {
             l if l > 0 => {
                 let mut ret: Vec<Coord> = Vec::new();
@@ -63,7 +63,7 @@ impl ParticleGenerator {
         return Ok(self._wy_pos.random_gen().into_raw_vec().into_py(py));
     }
 
-    #[args(only_return_len = "false")]
+    #[pyo3(signature = (size, only_return_len = false))]
     fn gen_many(&self, py: Python<'_>, size: i32, only_return_len: bool) -> PyResult<PyObject> {
         let ret = (0..size)
             .into_iter()
@@ -77,7 +77,7 @@ impl ParticleGenerator {
         }
     }
 
-    #[args(only_return_len = "false")]
+    #[pyo3(signature = (size, only_return_len = false))]
     fn par_gen_many(&self, py: Python<'_>, size: i32, only_return_len: bool) -> PyResult<PyObject> {
         let ret = py.allow_threads(move || {
             (0..size)

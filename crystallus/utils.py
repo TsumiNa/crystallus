@@ -9,7 +9,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from crystallus import SpaceGroupDB
 
-from .core.utils import lll_reduce, pbc_all_distances
+from ._core.utils import lll_reduce, pbc_all_distances
 
 __call__ = [
     'WyckoffPositionConverter',

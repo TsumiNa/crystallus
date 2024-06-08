@@ -23,7 +23,6 @@ use std::collections::HashMap;
 use libcrystal::{Float, WyckoffCfgGenerator as wyckoff_cfg_gen};
 
 #[pyclass(module = "core")]
-#[pyo3(text_signature = "(composition, *, max_recurrent, n_jobs, priority, verbose)")]
 pub struct WyckoffCfgGenerator {
     composition: BTreeMap<String, Float>,
     priority: HashMap<usize, HashMap<String, Float>>,
@@ -39,19 +38,19 @@ pub struct WyckoffCfgGenerator {
 #[pymethods]
 impl WyckoffCfgGenerator {
     #[new]
-    #[args(
+    #[pyo3( signature = (
         composition,
-        "*",
-        max_recurrent = "1_000",
-        n_jobs = "-1",
-        priority = "None",
+        *,
+        max_recurrent = 1_000,
+        n_jobs = -1,
+        priority = None,
         verbose = false
-    )]
+    ))]
     fn new(
-        composition: &PyDict,
+        composition: &Bound<'_, PyDict>,
         max_recurrent: Option<u16>,
         n_jobs: Option<i16>,
-        priority: Option<&PyDict>,
+        priority: Option<&Bound<'_, PyDict>>,
         verbose: Option<bool>,
     ) -> PyResult<Self> {
         // convert Option<T: FromPyObject> -> Option<D>
@@ -71,7 +70,7 @@ impl WyckoffCfgGenerator {
         })
     }
 
-    #[pyo3(text_signature = "($self, spacegroup_num)")]
+    #[pyo3(signature = (spacegroup_num))]
     fn gen_one(&self, py: Python<'_>, spacegroup_num: usize) -> PyResult<PyObject> {
         let priority = match self.priority.get(&spacegroup_num) {
             Some(h) => Some(h.clone()),
@@ -92,9 +91,13 @@ impl WyckoffCfgGenerator {
         }
     }
 
-    #[args(spacegroup_num = "*")]
-    #[pyo3(text_signature = "($self, size, /, *spacegroup_num)")]
-    fn gen_many(&self, py: Python<'_>, size: i32, spacegroup_num: &PyTuple) -> PyResult<PyObject> {
+    #[pyo3(signature = (size, /, *spacegroup_num))]
+    fn gen_many<'py>(
+        &self,
+        py: Python<'py>,
+        size: i32,
+        spacegroup_num: &Bound<'py, PyTuple>,
+    ) -> PyResult<PyObject> {
         let spacegroup_num: Vec<usize> = match spacegroup_num.extract() {
             Ok(m) => m,
             Err(_) => {
@@ -143,7 +146,7 @@ impl WyckoffCfgGenerator {
                 Ok(ret.into_py(py))
             }
             _ => {
-                let dict = PyDict::new(py);
+                let dict = PyDict::new_bound(py);
                 let mut tmp: Vec<wyckoff_cfg_gen> = Vec::new();
                 for sp_num in spacegroup_num.iter() {
                     let priority = match self.priority.get(&sp_num) {

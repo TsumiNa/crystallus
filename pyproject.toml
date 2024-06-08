@@ -1,29 +1,37 @@
 [package]
+name = "crystallus"
 requires-python = ">=3.8"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
+maintainer = "tsumina <liu.chang.1865@gmail.com>"
 classifier = [
-  'Development Status :: 4 - Beta',
-  'Intended Audience :: Science/Research',
-  'License :: OSI Approved :: BSD License',
-  'Natural Language :: English',
-  'Operating System :: Microsoft :: Windows',
-  'Operating System :: MacOS',
-  'Operating System :: Unix',
-  'Programming Language :: Python :: 3.7',
-  'Programming Language :: Python :: 3.8',
-  'Programming Language :: Python :: 3.9',
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
-dependencies = [
-  'peewee>=3.13.0',
-  'pandas>=1.0.0',
-  'pymatgen>=2021.0.0',
-]
-maintainer = 'tsumina <liu.chang.1865@gmail.com>'
+
+[dependencies]
+pyo3 = { version = "^0.21.2", features = ["extension-module"] }
+pymatgen = { version = "^2022.0.0", features = ["ase", "pandas"] }
+peewee = { version = "^3.13.0", features = ["sqlite"] }
+mkl-service = { version = "^2.4.1" }
+ase = { version = "^3.22.0" }
+pandas = { version = "^1.3.3" }
+numpy = { version = "^1.21.2" }
 
 [build-system]
-build-backend = 'maturin'
-requires = ["maturin>=0.12,<0.13"]
+requires = ["maturin>=1.6,<2.0"]
+build-backend = "maturin"
 
 [tool.maturin]
+bindings = "pyo3"
 compatibility = "linux"
-
+module-name = "crystallus._core"
+features = ["pyo3/extension-module"]

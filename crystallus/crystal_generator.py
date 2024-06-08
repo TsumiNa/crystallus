@@ -15,9 +15,8 @@
 from copy import deepcopy
 from typing import Dict, List, Sequence, Tuple, Union
 
-import numpy as np
 
-from .core import CrystalGenerator as _CG
+from ._core import CrystalGenerator as _CG
 
 __all__ = ["CrystalGenerator"]
 
