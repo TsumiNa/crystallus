@@ -6,4 +6,4 @@ dependencies:
   - peewee>=3.13.0
   - pymatgen
   - pandas
-  - ase
+  - ase==3.22.1

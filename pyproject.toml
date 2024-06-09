@@ -22,7 +22,7 @@ pyo3 = { version = "^0.21.2", features = ["extension-module"] }
 pymatgen = { version = "^2022.0.0", features = ["ase", "pandas"] }
 peewee = { version = "^3.13.0", features = ["sqlite"] }
 mkl-service = { version = "^2.4.1" }
-ase = { version = "^3.22.0" }
+ase = { version = "3.22.1" }
 pandas = { version = "^1.3.3" }
 numpy = { version = "^1.21.2" }
 
