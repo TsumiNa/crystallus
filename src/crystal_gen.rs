@@ -244,7 +244,10 @@ impl CrystalGenerator {
             std::env::set_var("RAYON_NUM_THREADS", self.n_jobs.to_string());
         }
 
-        let max_attempts = max_attempts.unwrap_or(expect_size);
+        let mut max_attempts = max_attempts.unwrap_or(expect_size);
+        if !check_distance {
+            max_attempts = expect_size;
+        }
         if max_attempts < expect_size {
             return Err(PyValueError::new_err(
                 "`max_attempts` can not be smaller than `expect_size`",
