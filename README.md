@@ -54,7 +54,7 @@ Suppose we will use the Python 3.8 and the latest stable Rust on Linux.
      $> conda activate crystallus  # activate your python environment by name
      $> pip install -U maturin  # install maturin using pip
      $> cd <path/to/crystallus>  # chang to the root of crystallus codes
-     $> maturin build -i $(which python) --release --no-sdist --strip  # build package
+     $> maturin build -i $(which python) --release --strip  # build package
     ```
 
     If everything goes well, you will find a `crystallus-*.whl` file under `target/wheels` directory.

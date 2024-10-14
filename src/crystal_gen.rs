@@ -1,4 +1,4 @@
-// Copyright 2021 TsumiNa
+// Copyright 2024 TsumiNa
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ use libcrystal::Generator;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
+use rand::{prelude::SliceRandom, thread_rng};
 use rayon::prelude::*;
 use std::collections::BTreeMap;
 
@@ -26,9 +27,6 @@ use libcrystal::{
 };
 
 #[pyclass(module = "core")]
-#[pyo3(
-    text_signature = "(spacegroup_num, volume_of_cell, variance_of_volume, *, min_distance_tolerance, angle_range, angle_tolerance, max_recurrent, n_jobs, verbose)"
-)]
 pub struct CrystalGenerator {
     _crystal_gen: Either<BaseGenerator, EmpiricalGenerator>,
 
@@ -43,21 +41,22 @@ pub struct CrystalGenerator {
 #[pymethods]
 impl CrystalGenerator {
     #[new]
-    #[args(
-        spacegroup_num,
-        volume_of_cell,
-        variance_of_volume,
-        "*",
-        angle_range = "(30., 150.)",
-        angle_tolerance = "20.",
-        max_attempts_number = "5_000",
-        lattice = "None",
-        empirical_coords = "None",
-        empirical_coords_variance = "0.01",
-        empirical_coords_sampling_rate = "1.",
-        empirical_coords_loose_sampling = true,
-        n_jobs = "-1",
-        verbose = true
+    #[pyo3(
+        signature = (
+            spacegroup_num,
+            volume_of_cell,
+            variance_of_volume, *,
+            angle_range=(30., 150.),
+            angle_tolerance=20.,
+            lattice=None,
+            empirical_coords = None,
+            empirical_coords_variance = 0.01,
+            empirical_coords_sampling_rate = 1.,
+            empirical_coords_loose_sampling = true,
+            max_attempts_number=5_000,
+            n_jobs = -1,
+            verbose = true
+        )
     )]
     fn new(
         spacegroup_num: usize,
@@ -65,8 +64,8 @@ impl CrystalGenerator {
         variance_of_volume: Float,
         angle_range: (Float, Float),
         angle_tolerance: Float,
-        lattice: Option<&PyTuple>,
-        empirical_coords: Option<&PyTuple>,
+        lattice: Option<&Bound<'_, PyTuple>>,
+        empirical_coords: Option<&Bound<'_, PyTuple>>,
         empirical_coords_variance: Float,
         empirical_coords_sampling_rate: Float,
         empirical_coords_loose_sampling: bool,
@@ -146,12 +145,11 @@ impl CrystalGenerator {
         }
     }
 
-    #[pyo3(text_signature = "($self, wyckoff_cfg, *, check_distance, distance_scale_factor)")]
-    #[args(wyckoff_cfg, "*", check_distance = true, distance_scale_factor = "0.1")]
-    fn gen_one(
+    #[pyo3(signature = (wyckoff_cfg, *, check_distance=true, distance_scale_factor=0.1))]
+    fn gen_one<'py>(
         &self,
-        py: Python<'_>,
-        wyckoff_cfg: &PyDict,
+        py: Python<'py>,
+        wyckoff_cfg: &Bound<'py, PyDict>,
         check_distance: bool,
         distance_scale_factor: Float,
     ) -> PyResult<PyObject> {
@@ -190,7 +188,7 @@ impl CrystalGenerator {
         match cry {
             Err(e) => Err(PyValueError::new_err(e.to_string())),
             Ok(w) => {
-                let dict = PyDict::new(py);
+                let dict = PyDict::new_bound(py);
                 dict.set_item("spacegroup_num", w.spacegroup_num)?;
                 dict.set_item("volume", w.volume)?;
                 dict.set_item(
@@ -216,21 +214,20 @@ impl CrystalGenerator {
     }
 
     #[pyo3(
-        text_signature = "($self, expect_size, wyckoff_cfgs, *, max_attempts, check_distance, distance_scale_factor)"
+        signature = (
+            expect_size,
+            wyckoff_cfgs,
+            *,
+            max_attempts=None,
+            check_distance=true,
+            distance_scale_factor=0.1
+        )
     )]
-    #[args(
-        expect_size,
-        wyckoff_cfgs,
-        "*",
-        max_attempts = "None",
-        check_distance = true,
-        distance_scale_factor = "0.1"
-    )]
-    fn gen_many(
+    fn gen_many<'py>(
         &self,
-        py: Python<'_>,
+        py: Python<'py>,
         expect_size: usize,
-        wyckoff_cfgs: &PyTuple,
+        wyckoff_cfgs: &Bound<'py, PyTuple>,
         max_attempts: Option<usize>,
         check_distance: bool,
         distance_scale_factor: Float,
@@ -247,7 +244,10 @@ impl CrystalGenerator {
             std::env::set_var("RAYON_NUM_THREADS", self.n_jobs.to_string());
         }
 
-        let max_attempts = max_attempts.unwrap_or(expect_size);
+        let mut max_attempts = max_attempts.unwrap_or(expect_size);
+        if !check_distance {
+            max_attempts = expect_size;
+        }
         if max_attempts < expect_size {
             return Err(PyValueError::new_err(
                 "`max_attempts` can not be smaller than `expect_size`",
@@ -256,10 +256,9 @@ impl CrystalGenerator {
         let mut ret: Vec<Crystal> = Vec::new();
         match cfgs.len() {
             0 => {
-                return Ok(PyTuple::new(py, Vec::<PyDict>::new()).into_py(py));
+                return Ok(PyTuple::new_bound(py, Vec::<PyDict>::new()).into_py(py));
             }
             1 => {
-                let mut counter = expect_size;
                 let mut elements: Vec<String> = Vec::new();
                 let mut wyckoff_letters: Vec<String> = Vec::new();
                 for (elem, letter) in cfgs[0].iter_mut() {
@@ -267,10 +266,47 @@ impl CrystalGenerator {
                     wyckoff_letters.append(letter);
                 }
 
-                while (ret.len() < expect_size) && (counter <= max_attempts) {
+                //Do works
+                ret.append(&mut py.allow_threads(|| {
+                    (0..max_attempts)
+                        .into_par_iter()
+                        .map(|_| match &self._crystal_gen {
+                            Left(l) => l.gen(
+                                &elements,
+                                &wyckoff_letters,
+                                Some(check_distance),
+                                Some(distance_scale_factor),
+                            ),
+                            Right(r) => r.gen(
+                                &elements,
+                                &wyckoff_letters,
+                                Some(check_distance),
+                                Some(distance_scale_factor),
+                            ),
+                        })
+                        .filter_map(Result::ok)
+                        .collect::<Vec<Crystal>>()
+                }));
+
+                if ret.len() > expect_size {
+                    let mut rng = thread_rng();
+                    ret.shuffle(&mut rng);
+                    ret = ret.into_iter().take(expect_size).collect();
+                }
+            }
+            _ => {
+                for cfg in cfgs.iter_mut() {
+                    let mut ret_: Vec<Crystal> = Vec::new();
+                    let mut elements: Vec<String> = Vec::new();
+                    let mut wyckoff_letters: Vec<String> = Vec::new();
+                    for (elem, letter) in cfg.iter_mut() {
+                        elements.append(&mut vec![(*elem).clone(); letter.len()]);
+                        wyckoff_letters.append(letter);
+                    }
+
                     //Do works
-                    ret.append(&mut py.allow_threads(|| {
-                        (0..expect_size)
+                    ret_.append(&mut py.allow_threads(|| {
+                        (0..max_attempts)
                             .into_par_iter()
                             .map(|_| match &self._crystal_gen {
                                 Left(l) => l.gen(
@@ -289,45 +325,13 @@ impl CrystalGenerator {
                             .filter_map(Result::ok)
                             .collect::<Vec<Crystal>>()
                     }));
-                    counter += expect_size;
-                }
-            }
-            _ => {
-                let mut ref_ = 0;
-                for cfg in cfgs.iter_mut() {
-                    let mut counter = expect_size;
-                    let mut elements: Vec<String> = Vec::new();
-                    let mut wyckoff_letters: Vec<String> = Vec::new();
-                    for (elem, letter) in cfg.iter_mut() {
-                        elements.append(&mut vec![(*elem).clone(); letter.len()]);
-                        wyckoff_letters.append(letter);
-                    }
 
-                    while (ret.len() - ref_ < expect_size) && (counter <= max_attempts) {
-                        //Do works
-                        ret.append(&mut py.allow_threads(|| {
-                            (0..expect_size)
-                                .into_par_iter()
-                                .map(|_| match &self._crystal_gen {
-                                    Left(l) => l.gen(
-                                        &elements,
-                                        &wyckoff_letters,
-                                        Some(check_distance),
-                                        Some(distance_scale_factor),
-                                    ),
-                                    Right(r) => r.gen(
-                                        &elements,
-                                        &wyckoff_letters,
-                                        Some(check_distance),
-                                        Some(distance_scale_factor),
-                                    ),
-                                })
-                                .filter_map(Result::ok)
-                                .collect::<Vec<Crystal>>()
-                        }));
-                        counter += expect_size;
+                    if ret_.len() > expect_size {
+                        let mut rng = thread_rng();
+                        ret_.shuffle(&mut rng);
+                        ret_ = ret_.into_iter().take(expect_size).collect();
                     }
-                    ref_ = ret.len();
+                    ret.append(&mut ret_);
                 }
             }
         }
@@ -336,7 +340,7 @@ impl CrystalGenerator {
 
         let mut ret_: Vec<PyObject> = Vec::new();
         for crystal in ret {
-            let dict = PyDict::new(py);
+            let dict = PyDict::new_bound(py);
             dict.set_item("spacegroup_num", crystal.spacegroup_num)?;
             dict.set_item("volume", crystal.volume)?;
             dict.set_item(
@@ -360,6 +364,6 @@ impl CrystalGenerator {
 
             ret_.push(dict.into_py(py));
         }
-        Ok(PyTuple::new(py, ret_).into_py(py))
+        Ok(PyTuple::new_bound(py, ret_).into_py(py))
     }
 }

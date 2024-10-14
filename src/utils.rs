@@ -22,26 +22,32 @@ use libcrystal::{
 };
 
 // register functions
-pub(crate) fn register(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(lll_reduce, m)?)?;
-    m.add_function(wrap_pyfunction!(pbc_all_distances, m)?)?;
+pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(lll_reduce_py, m)?)?;
+    m.add_function(wrap_pyfunction!(pbc_all_distances_py, m)?)?;
     Ok(())
 }
 
-#[pyfunction("*", delta = "0.75")]
+#[pyfunction]
 #[pyo3(name = "lll_reduce")]
-#[pyo3(text_signature = "(basis, delta)")]
-fn lll_reduce(basis: &PySequence, delta: Float) -> PyResult<(Vec<Float>, Vec<Float>)> {
+#[pyo3(signature = (basis, delta=0.75))]
+fn lll_reduce_py(
+    basis: &Bound<'_, PySequence>,
+    delta: Float,
+) -> PyResult<(Vec<Float>, Vec<Float>)> {
     let basis: Vec<Vec<Float>> = basis.extract()?;
     let basis: Vec<[Float; 3]> = basis.iter().map(|x| [x[0], x[1], x[2]]).collect();
     let (basis, mapping) = _lll(&basis, delta);
     Ok((basis, mapping))
 }
 
-#[pyfunction("*", delta = "0.75")]
+#[pyfunction]
 #[pyo3(name = "pbc_all_distances")]
-#[pyo3(text_signature = "(lattice, frac_coords)")]
-fn pbc_all_distances(lattice: &PySequence, frac_coords: &PySequence) -> PyResult<Vec<Vec<Float>>> {
+#[pyo3(signature = (lattice, frac_coords))]
+fn pbc_all_distances_py(
+    lattice: &Bound<'_, PySequence>,
+    frac_coords: &Bound<'_, PySequence>,
+) -> PyResult<Vec<Vec<Float>>> {
     let lattice: Vec<Vec<Float>> = lattice.extract()?;
     let frac_coords: Vec<Vec<Float>> = frac_coords.extract()?;
     let lattice: Vec<[Float; 3]> = lattice.iter().map(|x| [x[0], x[1], x[2]]).collect();

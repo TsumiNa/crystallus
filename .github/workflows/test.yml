@@ -1,113 +1,108 @@
 name: tests
 
 on:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - "env/**"
-      - "docs/**"
-      - "samples/**"
-      - "licenses/**"
-      - "hooks/**"
-      - ".**"
-      - "!.github/**"
-      - "**.md"
-      - "**.yml"
-      - "**.txt"
-      - "**.in"
-      - "**.cfg"
-  pull_request:
-    branches:
-      - master
-    paths-ignore:
-      - "env/**"
-      - "docs/**"
-      - "samples/**"
-      - "licenses/**"
-      - "hooks/**"
-      - ".**"
-      - "!.github/**"
-      - "**.md"
-      - "**.yml"
-      - "**.txt"
-      - "**.in"
-      - "**.cfg"
+    push:
+        branches:
+            - master
+        paths-ignore:
+            - 'env/**'
+            - 'docs/**'
+            - 'samples/**'
+            - 'licenses/**'
+            - 'hooks/**'
+            - '.**'
+            - '!.github/**'
+            - '**.md'
+            - '**.yml'
+            - '**.txt'
+            - '**.in'
+            - '**.cfg'
+    pull_request:
+        branches:
+            - master
+        paths-ignore:
+            - 'env/**'
+            - 'docs/**'
+            - 'samples/**'
+            - 'licenses/**'
+            - 'hooks/**'
+            - '.**'
+            - '!.github/**'
+            - '**.md'
+            - '**.yml'
+            - '**.txt'
+            - '**.in'
+            - '**.cfg'
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      max-parallel: 6
-      matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: [3.7, 3.8, 3.9]
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            max-parallel: 6
+            matrix:
+                os: ['ubuntu-latest', 'macos-latest']
+                python-version: [3.8, 3.9, 3.10]
 
-    steps:
-      - uses: actions/checkout@v2
+        steps:
+            - uses: actions/checkout@v2
 
-      - name: Install Python ${{ matrix.python-version }}
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          mamba-version: "*"
-          channels: conda-forge,defaults
-          channel-priority: true
-          environment-file: .github/ci_environment.yml
-          auto-update-conda: true
-          auto-activate-base: false
-          activate-environment: test
+            - name: Install Python ${{ matrix.python-version }}
+              uses: conda-incubator/setup-miniconda@v2
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  mamba-version: '*'
+                  channels: conda-forge,defaults
+                  channel-priority: true
+                  environment-file: .github/ci_environment.yml
+                  auto-update-conda: true
+                  auto-activate-base: false
+                  activate-environment: test
 
-      - name: Install OpenBLAS on Linux
-        run: |
-          sudo apt update
-          sudo apt install -y libopenblas-dev gfortran
-        if: ${{ contains(matrix.os, 'ubuntu') }}
+            - name: Install compiler tools on Linux
+              run: |
+                  sudo apt update
+                  sudo apt install -y libopenblas-dev gfortran
+              if: ${{ contains(matrix.os, 'ubuntu') }}
 
-      - name: Install OpenBLAS on OSX
-        run: |
-          brew install openblas
-        if: ${{ contains(matrix.os, 'macos') }}
+            - name: Install Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: stable
+                  default: true
+            - name: Test libcrystal
+              uses: actions-rs/cargo@v1
+              with:
+                  command: test
+                  args: --package=libcrystal --features=openblas
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          default: true
-      - name: Test libcrystal
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --package=libcrystal --features=openblas
+            - name: Test python side
+              shell: bash -l {0}
+              run: |
+                  rustc --version
+                  maturin --version
+                  maturin develop && pytest --benchmark-skip
 
-      - name: Test python side
-        shell: bash -l {0}
-        run: |
-          rustc --version
-          maturin --version
-          maturin develop && pytest --benchmark-skip
+            - name: Build wheel
+              shell: bash -l {0}
+              run: |
+                  rustc --version
+                  maturin --version
+                  maturin build -i $(which python) --release --strip
 
-      - name: Build wheel
-        shell: bash -l {0}
-        run: |
-          rustc --version
-          maturin --version
-          maturin build -i $(which python) --release --strip
-
-      - name: Persist python wheel
-        uses: actions/upload-artifact@v1
-        if: always()
-        with:
-          name: wheels
-          path: target/wheels/
-      # - name: Publish to PyPi
-      #   on:
-      #     release:
-      #       types: [published]
-      #   env:
-      #     MATURIN_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      #   run: |
-      #     maturin publish --manylinux=off -u=tsumina
-    env:
-      RUST_BACKTRACE: 1
+            - name: Persist python wheel
+              uses: actions/upload-artifact@v1
+              if: always()
+              with:
+                  name: wheels
+                  path: target/wheels/
+            # - name: Publish to PyPi
+            #   on:
+            #     release:
+            #       types: [published]
+            #   env:
+            #     MATURIN_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+            #   run: |
+            #     maturin publish --manylinux=off -u=tsumina
+        env:
+            RUST_BACKTRACE: 1

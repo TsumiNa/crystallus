@@ -9,7 +9,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from crystallus import SpaceGroupDB
 
-from .core.utils import lll_reduce, pbc_all_distances
+from ._core.utils import lll_reduce, pbc_all_distances
 
 __call__ = [
     'WyckoffPositionConverter',
@@ -21,6 +21,7 @@ __call__ = [
 
 
 class WyckoffPositionConverter():
+    """Convert fraction coordinates into Wyckoff position formate. """
 
     class _Coordinate:
         patten = re.compile(r'(?P<xyz>-?\d?[xyz])|(?P<cons_frac>\d\/\d?)|(?P<cons>\d)')
@@ -67,7 +68,6 @@ class WyckoffPositionConverter():
 
             return x_coeff, y_coeff, z_coeff, const
 
-    """Convert fraction coordinates into Wyckoff position formate. """
 
     class _Particle():
         patten = re.compile(r',\s*')

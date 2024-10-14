@@ -1,4 +1,4 @@
-// Copyright 2021 TsumiNa
+// Copyright 2024 TsumiNa
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,15 @@ use crate::crystal_gen::CrystalGenerator;
 use crate::particle_gen::ParticleGenerator;
 use crate::wyckoff_cfg_gen::WyckoffCfgGenerator;
 
+// #[pymodule]
+// fn crystallus<'py>(py: Python<'py>, m: &Bound<'py, PyModule>) -> PyResult<()> {
+//     let core_ = PyModule::new_bound(m.py(), "core")?;
+//     core_mod(py, &core_)
+// }
+
 #[pymodule]
-fn core(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+#[pyo3(name = "_core")]
+fn _core_mod<'py>(py: Python<'py>, m: &Bound<'py, PyModule>) -> PyResult<()> {
     pyo3_log::init();
 
     // register classes
@@ -33,8 +40,8 @@ fn core(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<WyckoffCfgGenerator>()?;
 
     // register functions
-    let utils_mod = PyModule::new(py, "utils")?;
-    utils::register(py, utils_mod)?;
+    let utils_mod = PyModule::new_bound(m.py(), "_core.utils")?;
+    utils::register(&utils_mod)?;
 
     // Note that this does not define a package, so this won’t allow Python code to
     // directly import submodules by using from parent_module import child_module.
@@ -42,10 +49,10 @@ fn core(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     py_run!(
         py,
         utils_mod,
-        "import sys; sys.modules['crystallus.core.utils'] = utils_mod"
+        "import sys; sys.modules['crystallus._core.utils'] = utils_mod"
     );
 
     // add submodules
-    m.add_submodule(utils_mod)?;
+    m.add_submodule(&utils_mod)?;
     Ok(())
 }

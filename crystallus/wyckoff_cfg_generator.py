@@ -1,4 +1,4 @@
-# Copyright 2021 TsumiNa
+# Copyright 2024 TsumiNa
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ from copy import deepcopy
 from typing import Dict, Sequence, Union
 from xmlrpc.client import Boolean
 
-from .core import WyckoffCfgGenerator as _WYG
+from ._core import WyckoffCfgGenerator as _WYG
 
 
 class WyckoffCfgGenerator(object):

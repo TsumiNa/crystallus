@@ -1,4 +1,4 @@
-# Copyright 2021 TsumiNa
+# Copyright 2024 TsumiNa
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 from copy import deepcopy
 from typing import Dict, List, Sequence, Tuple, Union
 
-import numpy as np
 
-from .core import CrystalGenerator as _CG
+from ._core import CrystalGenerator as _CG
 
 __all__ = ["CrystalGenerator"]
 
