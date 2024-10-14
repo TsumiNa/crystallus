@@ -1,37 +1,99 @@
-[package]
-name = "crystallus"
-requires-python = ">=3.8"
-license = { file = "LICENSE" }
-maintainer = "tsumina <liu.chang.1865@gmail.com>"
-classifier = [
+[project]
+name = "shotgun-csp"
+version = "0.3.2-rc1"
+description = "Unleashing a revolutionary, single-shot, non-iterative framework that rapidly and efficiently cracks the crystal structure problem (CSP)."
+license = "Apache-2.0"
+requires-python = ">=3.10, <4.0"
+authors = [{ name = "tsumina", email = "liu.chang.1865@gmail.com" }]
+classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
+    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
 ]
 
-[dependencies]
-pyo3 = { version = "^0.21.2", features = ["extension-module"] }
-pymatgen = { version = "^2022.0.0", features = ["ase", "pandas"] }
-peewee = { version = "^3.13.0", features = ["sqlite"] }
-mkl-service = { version = "^2.4.1" }
-ase = { version = "3.22.1" }
-pandas = { version = "^1.3.3" }
-numpy = { version = "^1.21.2" }
+dependencies = [
+    "ase>=3.23.0,<4.0.0",
+    "pandas >=2.2.3,<3.0.0",
+    "scikit-learn >=1.5.2,<2.0.0",
+    "matminer >=0.9.3,<1.0.0",
+    "pydantic >=2.9.2,<3.0.0",
+    "tqdm >=4.66.5,<5.0.0",
+    "seaborn >=0.13.2,<1.0.0",
+    "pymatgen >=2024.10.3,<2025.0.0",
+    "peewee>=3.17.6,<4.0.0",
+    "mkl-service >=2.4.1,<3.0.0",
+    "numpy >=2.1.2,<3.0.0",
+    "torch>=2.4.1,<3.0.0",
+    "ipywidgets>=8.1.5,<9.0.0",
+]
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest >=8.3.3,<9.0.0",
+    "Sphinx >=8.1.3,<9.0.0",
+    "ipython >=8.28.0,<9.0.0",
+    "ipykernel >=6.29.5,<7.0.0",
+    "wheel >=0.44.0,<1.0.0",
+    "maturin >=1.7.4,<2.0.0",
+    "ruff >=0.1.0,<1.0.0",
+    "pip>=24.2",
+]
+
+# [build-system]
+# requires = ["maturin>=1.6,<2.0"]
+# build-backend = "maturin"
+
+# [build-system]
+# requires = ["poetry-core>=1.0.0"]
+# build-backend = "poetry.core.masonry.api"
+
+[tool.rye.scripts]
+dev = { cmd = "maturin develop", description = "Install the development version of shotgun-csp." }
+build = { cmd = "maturin build --release --strip", description = "Build the distribution package of shotgun-csp." }
 
 [build-system]
-requires = ["maturin>=1.6,<2.0"]
-build-backend = "maturin"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.maturin]
 bindings = "pyo3"
 compatibility = "linux"
-module-name = "crystallus._core"
+module-name = "shotgun_csp._libcrystal"
 features = ["pyo3/extension-module"]
+
+[tool.ruff]
+exclude = [".venv", "venv", "__pycache__", ".git"]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+# PEP8
+select = [
+    "F", # Pyflakes
+    "E", # pycodestyle
+    "W", # pycodestyle
+]
+ignore = [
+    "F841", # unused-variable
+    "E741", # ambiguous-variable-name
+    "W505", # doc-line-too-long
+]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint.mccabe]
+# C901
+max-complexity = 10

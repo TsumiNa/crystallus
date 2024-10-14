@@ -1,26 +1,15 @@
-# Copyright 2024 TsumiNa
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright 2024 TsumiNa.
+# SPDX-License-Identifier: Apache-2.0
+
 
 from copy import deepcopy
 from typing import Dict, Sequence, Union
 from xmlrpc.client import Boolean
 
-from ._core import WyckoffCfgGenerator as _WYG
+from shotgun_csp._libcrystal import WyckoffCfgGenerator as _WYG
 
 
 class WyckoffCfgGenerator(object):
-
     def __init__(
         self,
         composition,
@@ -59,10 +48,24 @@ class WyckoffCfgGenerator(object):
 
     @property
     def max_recurrent(self):
+        """
+        Retrieve the maximum recurrent value from the Wyckoff generator.
+
+        Returns:
+            int: The maximum recurrent value.
+        """
         return self._wyg.max_recurrent
 
     @property
     def n_jobs(self):
+        """
+        Returns the number of jobs.
+
+        This method retrieves the number of jobs from the `_wyg` attribute.
+
+        Returns:
+            int: The number of jobs.
+        """
         return self._wyg.n_jobs
 
     @n_jobs.setter
@@ -71,6 +74,12 @@ class WyckoffCfgGenerator(object):
 
     @property
     def verbose(self):
+        """
+        Returns the verbosity setting of the Wyckoff generator.
+
+        :return: Verbosity setting of the Wyckoff generator.
+        :rtype: bool
+        """
         return self._wyg.verbose
 
     @verbose.setter
@@ -79,10 +88,29 @@ class WyckoffCfgGenerator(object):
 
     @property
     def composition(self):
+        """
+        Returns a deep copy of the composition.
+
+        This method provides a deep copy of the `_composition` attribute to ensure
+        that the original composition data remains unaltered when modifications are
+        made to the returned copy.
+
+        Returns:
+            dict: A deep copy of the composition.
+        """
         return deepcopy(self._composition)
 
     @property
     def priority(self):
+        """
+        Returns a deep copy of the _priority attribute.
+
+        This method ensures that the original _priority attribute is not modified
+        by returning a deep copy of it.
+
+        Returns:
+            Any: A deep copy of the _priority attribute.
+        """
         return deepcopy(self._priority)
 
     def gen_one(self, *, spacegroup_num: int):

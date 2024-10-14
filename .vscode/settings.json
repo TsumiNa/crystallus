@@ -1,8 +1,102 @@
 {
-    "python.pythonPath": "/Users/liuchang/mambaforge/envs/crystallus/bin/python",
+    //Python
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        }
+    },
+    //toml
+    "[toml]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "tamasfe.even-better-toml"
+    },
+    //jupyter
+    "notebook.formatOnSave.enabled": true,
+    "notebook.codeActionsOnSave": {
+        "notebook.source.fixAll": "explicit",
+        "notebook.source.organizeImports": "explicit"
+    },
+    //autoDocstring
+    "autoDocstring.docstringFormat": "google",
+    "licenser.license": "AL2",
+    "licenser.projectName": "shotgun-csp",
+    "licenser.useSPDXLicenseFormat": true,
+    "licenser.excludeFileExtensions": [
+        "json",
+        "toml",
+        "yml",
+        "yaml",
+        "md",
+        "lock",
+    ],
     "cSpell.words": [
-        "consts",
-        "nums",
-        "pyfn"
-    ]
+        "Adadelta",
+        "Adamax",
+        "Anubhav",
+        "arange",
+        "ASGD",
+        "astype",
+        "cdist",
+        "cgcnn",
+        "convs",
+        "crys",
+        "csp",
+        "dataframe",
+        "DBSCAN",
+        "dmax",
+        "dmin",
+        "dtol",
+        "EDIFF",
+        "EDIFFG",
+        "ENCUT",
+        "featurization",
+        "featurize",
+        "featurized",
+        "Featurizer",
+        "featurizers",
+        "IBRION",
+        "incar",
+        "ISIF",
+        "ISMEAR",
+        "ISPIN",
+        "iterrows",
+        "joblib",
+        "keepdim",
+        "KPOINT",
+        "KPOINTS",
+        "kpts",
+        "LBFGS",
+        "LBNL",
+        "LCHARG",
+        "logsoftmax",
+        "LREAL",
+        "ltol",
+        "LWAVE",
+        "matminer",
+        "maxae",
+        "multiclass",
+        "multilabel",
+        "nbrs",
+        "NCORE",
+        "NELM",
+        "newaxis",
+        "optim",
+        "pearsonr",
+        "POTCAR",
+        "POTIM",
+        "PREC",
+        "PSTRESS",
+        "Rprop",
+        "seuclidean",
+        "softplus",
+        "softpluses",
+        "spearmanr",
+        "sumed",
+        "tqdm",
+        "vasp"
+    ],
+    "python.analysis.autoImportCompletions": true
 }

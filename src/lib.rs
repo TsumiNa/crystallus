@@ -1,16 +1,5 @@
-// Copyright 2024 TsumiNa
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2024 TsumiNa.
+// SPDX-License-Identifier: Apache-2.0
 
 use pyo3::{prelude::*, py_run};
 
@@ -23,14 +12,8 @@ use crate::crystal_gen::CrystalGenerator;
 use crate::particle_gen::ParticleGenerator;
 use crate::wyckoff_cfg_gen::WyckoffCfgGenerator;
 
-// #[pymodule]
-// fn crystallus<'py>(py: Python<'py>, m: &Bound<'py, PyModule>) -> PyResult<()> {
-//     let core_ = PyModule::new_bound(m.py(), "core")?;
-//     core_mod(py, &core_)
-// }
-
 #[pymodule]
-#[pyo3(name = "_core")]
+#[pyo3(name = "_libcrystal")]
 fn _core_mod<'py>(py: Python<'py>, m: &Bound<'py, PyModule>) -> PyResult<()> {
     pyo3_log::init();
 
@@ -40,7 +23,7 @@ fn _core_mod<'py>(py: Python<'py>, m: &Bound<'py, PyModule>) -> PyResult<()> {
     m.add_class::<WyckoffCfgGenerator>()?;
 
     // register functions
-    let utils_mod = PyModule::new_bound(m.py(), "_core.utils")?;
+    let utils_mod = PyModule::new_bound(m.py(), "_libcrystal.utils")?;
     utils::register(&utils_mod)?;
 
     // Note that this does not define a package, so this won’t allow Python code to
@@ -49,7 +32,7 @@ fn _core_mod<'py>(py: Python<'py>, m: &Bound<'py, PyModule>) -> PyResult<()> {
     py_run!(
         py,
         utils_mod,
-        "import sys; sys.modules['crystallus._core.utils'] = utils_mod"
+        "import sys; sys.modules['shotgun_csp._libcrystal.utils'] = utils_mod"
     );
 
     // add submodules

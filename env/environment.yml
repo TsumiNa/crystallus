@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-dependencies:
-  - numpy
-  - pandas
-  - peewee>=3.13.0
-  - pymatgen
-  - pandas
-  - ase==3.22.1

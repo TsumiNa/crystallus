@@ -1,44 +1,35 @@
-# Copyright 2024 TsumiNa
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright 2024 TsumiNa.
+# SPDX-License-Identifier: Apache-2.0
+
+
+from copy import deepcopy
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
-from copy import deepcopy
-from typing import Dict, List, Sequence, Tuple, Union
 
-
-from ._core import CrystalGenerator as _CG
+from shotgun_csp._libcrystal import CrystalGenerator as _CG
 
 __all__ = ["CrystalGenerator"]
 
 
-class CrystalGenerator(object):
-
-    def __init__(self,
-                 spacegroup_num: int,
-                 volume_of_cell: float,
-                 variance_of_volume: float,
-                 *,
-                 angle_range: Tuple[float, float] = (30., 150.),
-                 angle_tolerance: float = 20.,
-                 lattice: Union[Tuple[float], None] = None,
-                 empirical_coords: Union[List[Tuple[str, List[float]]], None] = None,
-                 empirical_coords_variance: float = 0.01,
-                 empirical_coords_sampling_rate: float = 1.,
-                 empirical_coords_loose_sampling: bool = True,
-                 max_attempts_number: int = 5_000,
-                 n_jobs: int = -1,
-                 verbose: bool = False):
+class CrystalGenerator:
+    def __init__(
+        self,
+        spacegroup_num: int,
+        volume_of_cell: float,
+        variance_of_volume: float,
+        *,
+        angle_range: Tuple[float, float] = (30.0, 150.0),
+        angle_tolerance: float = 20.0,
+        lattice: Union[Tuple[float], None] = None,
+        empirical_coords: Union[List[Tuple[str, List[float]]], None] = None,
+        empirical_coords_variance: float = 0.01,
+        empirical_coords_sampling_rate: float = 1.0,
+        empirical_coords_loose_sampling: bool = True,
+        max_attempts_number: int = 5_000,
+        n_jobs: int = -1,
+        verbose: bool = False,
+    ):
         """A generator for possible crystal structure generation.
 
         Parameters
@@ -93,7 +84,7 @@ class CrystalGenerator(object):
         if lattice is not None:
             lattice = np.asarray(lattice)
             if lattice.size != 9:
-                raise ValueError('illegal lattice')
+                raise ValueError("illegal lattice")
             self._lattice = lattice.reshape(3, 3)
             lattice = tuple(lattice.flatten().tolist())
         else:
@@ -109,70 +100,183 @@ class CrystalGenerator(object):
         self._empirical_coords_sampling_rate = empirical_coords_sampling_rate
         self._empirical_coords_loose_sampling = empirical_coords_loose_sampling
 
-        self._cg = _CG(spacegroup_num=spacegroup_num,
-                       volume_of_cell=volume_of_cell,
-                       variance_of_volume=variance_of_volume,
-                       angle_range=angle_range,
-                       angle_tolerance=angle_tolerance,
-                       lattice=lattice,
-                       empirical_coords=empirical_coords,
-                       empirical_coords_variance=empirical_coords_variance,
-                       empirical_coords_sampling_rate=empirical_coords_sampling_rate,
-                       empirical_coords_loose_sampling=empirical_coords_loose_sampling,
-                       max_attempts_number=max_attempts_number,
-                       n_jobs=n_jobs,
-                       verbose=verbose)
+        self._cg = _CG(
+            spacegroup_num=spacegroup_num,
+            volume_of_cell=volume_of_cell,
+            variance_of_volume=variance_of_volume,
+            angle_range=angle_range,
+            angle_tolerance=angle_tolerance,
+            lattice=lattice,
+            empirical_coords=empirical_coords,
+            empirical_coords_variance=empirical_coords_variance,
+            empirical_coords_sampling_rate=empirical_coords_sampling_rate,
+            empirical_coords_loose_sampling=empirical_coords_loose_sampling,
+            max_attempts_number=max_attempts_number,
+            n_jobs=n_jobs,
+            verbose=verbose,
+        )
 
     @property
     def volume_of_cell(self):
+        """
+        Returns the volume of the cell.
+
+        This method retrieves the precomputed volume of the cell stored in the
+        `_volume_of_cell` attribute.
+
+        Returns:
+            float: The volume of the cell.
+        """
         return self._volume_of_cell
 
     @property
     def variance_of_volume(self):
+        """
+        Returns the variance of the volume for the crystal structure.
+
+        This method retrieves the precomputed variance of the volume, which is a measure of the dispersion of volume values around the mean volume.
+
+        Returns:
+            float: The variance of the volume.
+        """
         return self._variance_of_volume
 
     @property
     def angle_range(self):
+        """
+        Returns the range of angles for the crystal generator.
+
+        This method retrieves the angle range that is used in the crystal
+        generation process. The angle range is typically defined as a tuple
+        or list of two values representing the minimum and maximum angles.
+
+        Returns:
+            tuple: A tuple containing the minimum and maximum angles.
+        """
         return self._angle_range
 
     @property
     def angle_tolerance(self):
+        """
+        Returns the angle tolerance value.
+
+        The angle tolerance is used to determine the acceptable deviation
+        from ideal angles in the crystal structure.
+
+        Returns:
+            float: The angle tolerance value.
+        """
         return self._angle_tolerance
 
     @property
     def max_attempts_number(self):
+        """
+        Retrieve the maximum number of attempts allowed for generating a crystal structure.
+
+        Returns:
+            int: The maximum number of attempts.
+        """
         return self._cg.max_attempts_number
 
     @property
     def empirical_coords(self):
+        """
+        Returns a deep copy of the empirical coordinates.
+
+        This method provides a deep copy of the `_empirical_coords` attribute,
+        ensuring that the original data remains unaltered when modifications
+        are made to the returned copy.
+
+        Returns:
+            list: A deep copy of the empirical coordinates.
+        """
         return deepcopy(self._empirical_coords)
 
     @property
     def lattice(self):
+        """
+        Returns a deep copy of the lattice.
+
+        This method provides a deep copy of the `_lattice` attribute to ensure
+        that the original lattice data remains unaltered when modifications
+        are made to the returned copy.
+
+        Returns:
+            object: A deep copy of the `_lattice` attribute.
+        """
         return deepcopy(self._lattice)
 
     @property
     def empirical_coords_variance(self):
+        """
+        Returns the empirical coordinates variance.
+
+        This method retrieves the precomputed variance of the empirical coordinates
+        for the crystal structure.
+
+        Returns:
+            float: The variance of the empirical coordinates.
+        """
         return self._empirical_coords_variance
 
     @property
     def empirical_coords_sampling_rate(self):
+        """
+        Returns the empirical coordinates sampling rate.
+
+        This method retrieves the sampling rate for empirical coordinates,
+        which is stored in the private attribute `_empirical_coords_sampling_rate`.
+
+        Returns:
+            float: The empirical coordinates sampling rate.
+        """
         return self._empirical_coords_sampling_rate
 
     @property
     def empirical_coords_loose_sampling(self):
+        """
+        Returns the empirical coordinates with loose sampling.
+
+        This method provides access to the empirical coordinates that are generated
+        using a loose sampling approach. The loose sampling allows for a broader
+        range of coordinate values, which can be useful in certain crystallographic
+        computations or simulations.
+
+        Returns:
+            list: A list of empirical coordinates generated with loose sampling.
+        """
         return self._empirical_coords_loose_sampling
 
     @property
     def spacegroup_num(self):
+        """
+        Retrieve the space group number of the crystal.
+
+        Returns:
+            int: The space group number.
+        """
         return self._cg.spacegroup_num
 
     @property
     def verbose(self):
+        """
+        Returns the verbosity status of the crystal generator.
+
+        :return: The verbosity status.
+        :rtype: bool
+        """
         return self._verbose
 
     @property
     def n_jobs(self):
+        """
+        Returns the number of jobs.
+
+        This method retrieves the number of jobs (`n_jobs`) from the `_cg` attribute.
+
+        Returns:
+            int: The number of jobs.
+        """
         return self._cg.n_jobs
 
     @n_jobs.setter
@@ -226,7 +330,7 @@ class CrystalGenerator(object):
         ----------
         expect_size:
             The expectation of the total amount of generated structures based on one Wyckoff.
-            Whatever one generated structure is legal or not, **one attempt** will be consumed. 
+            Whatever one generated structure is legal or not, **one attempt** will be consumed.
             Please noted that the result could be empty when no structures matched the atomic distance conditions.
             When the number of generated structures are not fit your expectation too far away,
             try to give the parameter ``max_attempts`` a higher value..
@@ -256,7 +360,7 @@ class CrystalGenerator(object):
             ``volume: float``, ``lattice: list``, ``wyckoff_letters: list``,
             and ``coords: list``.
         """
-        assert expect_size >= 1, 'attempts number must be greater than 1'
+        assert expect_size >= 1, "attempts number must be greater than 1"
 
         if len(wyckoff_cfgs) > 0:
             return self._cg.gen_many(
@@ -282,7 +386,7 @@ class CrystalGenerator(object):
         ----------
         expect_size: int
             The expectation of the total amount of generated structures based on one Wyckoff.
-            Whatever one generated structure is legal or not, **one attempt** will be consumed. 
+            Whatever one generated structure is legal or not, **one attempt** will be consumed.
             Please noted that the result could be empty when no structures matched the atomic distance conditions.
             When the number of generated structures are not fit your expectation too far away,
             try to give the parameter ``max_attempts`` a higher value..
@@ -311,14 +415,17 @@ class CrystalGenerator(object):
             ``volume: float``, ``lattice: list``, ``wyckoff_letters: list``,
             and ``coords: list``.
         """
-        assert expect_size >= 1, 'attempts number must be greater than 1'
+        assert expect_size >= 1, "attempts number must be greater than 1"
         for cfg in wyckoff_cfgs:
-            yield cfg, self._cg.gen_many(
-                expect_size,
-                (cfg,),
-                max_attempts=max_attempts,
-                check_distance=check_distance,
-                distance_scale_factor=distance_scale_factor,
+            yield (
+                cfg,
+                self._cg.gen_many(
+                    expect_size,
+                    (cfg,),
+                    max_attempts=max_attempts,
+                    check_distance=check_distance,
+                    distance_scale_factor=distance_scale_factor,
+                ),
             )
 
     def __repr__(self):

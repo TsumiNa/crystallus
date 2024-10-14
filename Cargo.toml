@@ -3,7 +3,7 @@ authors = ['tsumina <liu.chang.1865@gmail.com>']
 edition = '2021'
 homepage = 'https://github.com/yoshida-lab/crystallus'
 license = 'Apache-2'
-name = 'crystallus'
+name = 'shotgun-csp'
 publish = false
 version = '0.3.2-rc1'
 
